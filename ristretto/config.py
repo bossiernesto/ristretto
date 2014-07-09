@@ -9,7 +9,7 @@
 
 """
 
-import imp
+import types
 import os
 from .utils.util import wrap_exception, check_for_file
 
@@ -34,7 +34,6 @@ class ConfigProxy(object):
 
 
 class Configuration(dict):
-
     def __init__(self, root_path, default_dict=None):
         self.root_path = root_path
         dict.__init__(self, default_dict or {})
@@ -43,15 +42,20 @@ class Configuration(dict):
         if not check_for_file(self.root_path, py_file):
             raise EnvironmentError('file {0} does not exists or wrong path'.format(py_file))
         filename = os.path.join(self.root_path, py_file)
-        mod = imp.new_module('config')
+        mod = types.ModuleType('config')
         mod.filename = py_file
-
         try:
-            with open(filename) as config_file:
-                print(config_file.read())
-                exec(compile(config_file.read(), filename, 'exec'), mod.__dict__)
+            with open(filename, 'rb') as config_file:
+                config_compiled = compile(config_file.read(), filename, 'exec')
+                exec(config_compiled, mod.__dict__)
+            self.clean_builtins(mod.__dict__)
+
+            self.update(mod.__dict__)
         except IOError:
             wrap_exception(EnvironmentError, 'error processing file config {0}'.format(py_file))
+
+    def clean_builtins(self, dictionary):
+        del dictionary['__builtins__']
 
     def import_from_environ(self, environ_var):
         evar = os.environ.get(environ_var)

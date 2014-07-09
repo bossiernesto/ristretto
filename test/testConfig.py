@@ -3,7 +3,7 @@ from test.resource.configResource import ObjectTest
 from ristretto.config import Configuration
 import os
 
-TESTING_FILEPATH = './resource/configFileTest.py'
+TESTING_FILEPATH = './resource/config.py'
 
 
 class TestConfiguration(TestCase):
@@ -16,7 +16,7 @@ class TestConfiguration(TestCase):
     def test_import_from_file(self):
         self.config.import_from_py(TESTING_FILEPATH)
         print(self.config)
-        self.assertIn('Avariable',self.config)
+        self.assertIn('AVariable',self.config)
 
     def test_import_from_object(self):
         self.config.import_from_object(self.obj)
